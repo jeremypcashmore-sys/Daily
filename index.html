@@ -365,11 +365,16 @@ border:1px solid var(--line);border-radius:12px;padding:10px 6px;font-weight:750
 </section>
 
 <section class="card w6" id="exercise">
-<h3>Exercise <span class="pill">Sets + activity</span></h3>
-<div class="two"><input id="exName" type="text" placeholder="Exercise"><input id="exWeight" type="number" step=".5" placeholder="Weight kg"></div>
+<h3>Exercise <span class="pill">Editable library</span></h3>
+<div class="two"><select id="exName" onchange="onExerciseSelected()"></select><input id="exWeight" type="number" step=".5" placeholder="Weight kg"></div>
 <div class="three" style="margin-top:8px"><input id="exSets" type="number" placeholder="Sets"><input id="exReps" type="number" placeholder="Reps"><input id="exMinutes" type="number" placeholder="Minutes"></div>
+<div class="sub" id="exLast" style="margin-top:8px"></div>
 <div class="toolbar"><button class="action" onclick="saveExercise()">Add exercise</button></div>
 <div id="exerciseList" class="stack" style="margin-top:9px"></div>
+<details style="margin-top:10px"><summary>Edit exercise dropdown</summary>
+  <div class="row" style="margin-top:9px"><input id="newExerciseName" type="text" placeholder="New exercise name" style="flex:1"><button class="secondary" onclick="addExerciseName()">Add</button></div>
+  <div id="exerciseLibraryList" class="stack" style="margin-top:9px"></div>
+</details>
 </section>
 
 <section class="card w6" id="walk">
@@ -583,13 +588,32 @@ function renderDiet(){
  $('foodLibrary').innerHTML=lib.map(f=>`<div class="item"><div class="itemtop"><b>${esc(f.name)}</b><button class="ghost" onclick="delFood('${f.id}')">×</button></div><small>${esc(f.portion)} · ${f.calories} kcal · P ${f.protein}g · C ${f.carbs}g · F ${f.fat}g</small></div>`).join('')
 }
 
+const defaultExercises=['Bench press','Dumbbell curls','Bowflex flies','Squats','Shoulder press','Lat pulldown','Seated row','Triceps press','Calf raises'];
+function exerciseLibrary(){return readJSON('daily-exercise-library',defaultExercises)}
+function renderExerciseOptions(){
+ const lib=exerciseLibrary(),sel=$('exName');if(!sel)return;const current=sel.value;
+ sel.innerHTML='<option value="">Select exercise…</option>'+lib.map(n=>`<option value="${escAttr(n)}">${esc(n)}</option>`).join('');
+ if(lib.includes(current))sel.value=current;
+ const list=$('exerciseLibraryList');if(list)list.innerHTML=lib.map((n,i)=>`<div class="item"><div class="itemtop"><b>${esc(n)}</b><button class="ghost" onclick="delExerciseName(${i})">×</button></div></div>`).join('');
+}
+function addExerciseName(){const v=$('newExerciseName').value.trim();if(!v)return;const a=exerciseLibrary();if(!a.some(x=>x.toLowerCase()===v.toLowerCase()))a.push(v);writeJSON('daily-exercise-library',a);$('newExerciseName').value='';renderExerciseOptions();$('exName').value=v;onExerciseSelected()}
+function delExerciseName(i){const a=exerciseLibrary();a.splice(i,1);writeJSON('daily-exercise-library',a);renderExerciseOptions()}
+function lastExercise(name){
+ const recs=allRecords().filter(r=>r.date<=selectedDate).sort((a,b)=>b.date.localeCompare(a.date));
+ for(const r of recs){const arr=[...(r.exercise||[])].reverse();const x=arr.find(e=>e.name===name);if(x)return {date:r.date,...x}}return null;
+}
+function onExerciseSelected(){
+ const n=$('exName').value;if(!n){$('exLast').textContent='';return}const x=lastExercise(n);
+ if(x){$('exWeight').value=x.weight||'';$('exSets').value=x.sets||'';$('exReps').value=x.reps||'';$('exMinutes').value=x.minutes||'';$('exLast').textContent=`Last: ${x.date} · ${x.weight||0} kg · ${x.sets||0} × ${x.reps||0}${x.minutes?' · '+x.minutes+' min':''}`;}
+ else {$('exWeight').value='';$('exSets').value='';$('exReps').value='';$('exMinutes').value='';$('exLast').textContent='No previous entry for this exercise.'}
+}
 function saveExercise(){
  const n=$('exName').value.trim();if(!n)return;const r=dateRecord();r.exercise=r.exercise||[];r.exercise.push({id:'x'+Date.now(),name:n,weight:+$('exWeight').value||0,sets:+$('exSets').value||0,reps:+$('exReps').value||0,minutes:+$('exMinutes').value||0});saveRecord(r);
  let legacy=readJSON('exercise-log',[]);legacy.push({date:selectedDate,name:n,weight:+$('exWeight').value||0,sets:+$('exSets').value||0,reps:+$('exReps').value||0});writeJSON('exercise-log',legacy);
- ['exName','exWeight','exSets','exReps','exMinutes'].forEach(id=>$(id).value='');renderExercise();renderSummary();renderTrends();renderInsights()
+ ['exWeight','exSets','exReps','exMinutes'].forEach(id=>$(id).value='');renderExercise();renderSummary();renderTrends();renderInsights();onExerciseSelected()
 }
 function delExercise(id){const r=dateRecord();r.exercise=(r.exercise||[]).filter(x=>x.id!==id);saveRecord(r);renderExercise();renderSummary();renderTrends();renderInsights()}
-function renderExercise(){const r=dateRecord();$('exerciseList').innerHTML=(r.exercise||[]).map(x=>`<div class="item"><div class="itemtop"><b>${esc(x.name)}</b><button class="ghost" onclick="delExercise('${x.id}')">×</button></div><small>${x.weight||0} kg · ${x.sets||0} × ${x.reps||0}${x.minutes?' · '+x.minutes+' min':''}</small></div>`).join('')||'<div class="sub">No exercise logged for this day.</div>'}
+function renderExercise(){renderExerciseOptions();const r=dateRecord();$('exerciseList').innerHTML=(r.exercise||[]).map(x=>`<div class="item"><div class="itemtop"><b>${esc(x.name)}</b><button class="ghost" onclick="delExercise('${x.id}')">×</button></div><small>${x.weight||0} kg · ${x.sets||0} × ${x.reps||0}${x.minutes?' · '+x.minutes+' min':''}</small></div>`).join('')||'<div class="sub">No exercise logged for this day.</div>'}
 function saveActivity(){const r=dateRecord();r.activity={walkingMinutes:+$('walkMinutes').value||0,steps:+$('steps').value||0,note:$('activityNote').value.trim()};saveRecord(r);renderActivity();renderSummary();renderTrends();renderInsights()}
 function renderActivity(){const a=dateRecord().activity||{};$('walkMinutes').value=a.walkingMinutes||'';$('steps').value=a.steps||'';$('activityNote').value=a.note||'';$('activitySaved').textContent=(a.walkingMinutes||a.steps||a.note)?`Saved: ${a.walkingMinutes||0} min walking · ${a.steps||0} steps${a.note?' · '+a.note:''}`:'No activity entered for this day.'}
 
@@ -793,7 +817,7 @@ function exportData(){
  const storage={};
  for(let i=0;i<localStorage.length;i++){
    const k=localStorage.key(i);
-   if(k && (k.startsWith('daily-') || k.startsWith('morning-ministry-') || k.startsWith('evening-darby-') || k==='exercise-log' || k.startsWith('nutrition-'))) storage[k]=localStorage.getItem(k);
+   if(k && (k.startsWith('daily-') || k.startsWith('morning-ministry-') || k.startsWith('evening-darby-') || k.startsWith('raven-daily-') || k.startsWith('taylor-daily-') || k==='exercise-log' || k.startsWith('nutrition-'))) storage[k]=localStorage.getItem(k);
  }
  const payload={version:6,exportedAt:new Date().toISOString(),storage};
  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`Daily-FULL-backup-${isoLocal()}.json`;a.click();URL.revokeObjectURL(url);$('dataStatus').textContent='Full Daily backup exported — dated records, readings, tasks, schedule, quotes, goals, foods and settings included.'
@@ -871,11 +895,11 @@ renderAll();
 // Daily v7 Dream navigation + daily priorities. Existing Daily storage is untouched.
 let dailyView=localStorage.getItem('daily-last-view')||'today';
 const viewCards={
- today:['dailyFocus','todaySummary','reading','tasksCard','proverbDaily'],
+ today:['dailyFocus','todaySummary','reading','tasksCard','proverbDaily','ministry','pilgrims'],
  journal:['notes','images','calendar','data'],
  health:['weight','waist','diet','exercise','walk','trends','insights'],
- growth:['reading','proverbDaily','ministry','pilgrims'],
- life:['tasksCard','calendar']
+ growth:['reading','proverbDaily','ministry','ravenDaily','taylorDaily','pilgrims'],
+ life:['tasksCard','calendar','news']
 };
 const viewLabels={today:'Focus',journal:'History',health:'Body',growth:'Faith',life:'Plan'};
 function setDailyView(view,scroll=true){
