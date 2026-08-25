@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f2f3f5">
-<title>Daily v6 gold master safe</title>
+<title>Daily v7 dream</title>
 <style>
 :root{
   --bg:#f2f3f5;--panel:#fff;--panel2:#f7f8f9;--ink:#191c20;--muted:#69717a;
@@ -125,9 +125,38 @@ border:1px solid var(--line);border-radius:12px;padding:10px 6px;font-weight:750
  .quickGrid{grid-template-columns:repeat(2,1fr)}
 }
 
+
+/* Daily v7 Dream layer — calm operating system */
+.sectionTabs{position:sticky;top:64px;z-index:15;background:var(--bg);padding:6px 0 8px}
+.sectionTabs button{display:block;width:100%;text-align:center;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 6px;font-weight:750;box-shadow:var(--shadow)}
+.sectionTabs button small{display:block;color:var(--muted);font-weight:500;margin-top:2px}
+.sectionTabs button.active{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.sectionTabs button.active small{color:var(--panel);opacity:.72}
+.dreamHero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:13px;margin-bottom:13px}
+.dreamPanel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:15px;box-shadow:var(--shadow)}
+.dreamPanel h3{margin:0 0 10px;font-size:17px}
+.progressBig{height:12px;background:var(--panel2);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin:9px 0 7px}
+.progressBig i{display:block;height:100%;width:0;background:var(--good);transition:width .25s ease}
+.bigPct{font-size:34px;font-weight:850;line-height:1}
+.priorityGrid{display:grid;gap:7px}
+.priorityRow{display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.priorityRow input[type=checkbox]{width:20px;height:20px;margin:0}
+.priorityRow input[type=text]{background:transparent;border:0;padding:4px 2px}
+.quickActions{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}
+.quickActions button{border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:11px;padding:10px 6px;font-weight:700}
+.viewHint{color:var(--muted);font-size:12px;margin-top:7px}
+.card.view-hidden{display:none!important}
+.nav a.active{background:var(--ink);color:var(--panel)}
+@media(max-width:900px){.dreamHero{grid-template-columns:1fr}}
+@media(max-width:700px){
+ .sectionTabs{top:105px}.sectionTabs button{font-size:11px;padding:8px 2px}.sectionTabs button small{display:none}
+ .quickActions{grid-template-columns:repeat(2,1fr)}
+}
+
 </style>
 </head>
 <body>
+<!-- Daily v7 Dream: functional views, Top 3, quick capture, completion progress -->
 <div class="topbar"><div class="topinner">
   <div class="brand"><div class="logo">D</div><div><h1>Daily</h1><small>Faith · health · life</small></div></div>
   <div class="globalSearch">
@@ -152,12 +181,31 @@ border:1px solid var(--line);border-radius:12px;padding:10px 6px;font-weight:750
 </section>
 
 <nav class="sectionTabs" aria-label="Daily sections">
-  <a href="#todaySummary">Today<small>Focus</small></a>
-  <a href="#notes">Journal<small>History</small></a>
-  <a href="#weight">Health<small>Body</small></a>
-  <a href="#reading">Growth<small>Faith</small></a>
-  <a href="#calendar">Life<small>Plan</small></a>
+  <button type="button" data-view="today" class="active" onclick="setDailyView('today')">Today<small>Focus</small></button>
+  <button type="button" data-view="journal" onclick="setDailyView('journal')">Journal<small>History</small></button>
+  <button type="button" data-view="health" onclick="setDailyView('health')">Health<small>Body</small></button>
+  <button type="button" data-view="growth" onclick="setDailyView('growth')">Growth<small>Faith</small></button>
+  <button type="button" data-view="life" onclick="setDailyView('life')">Life<small>Plan</small></button>
 </nav>
+
+<section class="dreamHero" id="dreamCommand">
+ <div class="dreamPanel">
+   <div class="row" style="justify-content:space-between"><h3 style="margin:0">Today at a glance</h3><span class="pill" id="dreamViewLabel">Focus</span></div>
+   <div class="row" style="justify-content:space-between;align-items:end;margin-top:10px"><div><div class="bigPct" id="dayCompletePct">0%</div><div class="sub">daily essentials complete</div></div><div class="sub" id="dayMomentum">Start with one useful thing.</div></div>
+   <div class="progressBig"><i id="dayCompleteBar"></i></div>
+   <div class="quickActions">
+     <button type="button" onclick="jumpTo('health','weight','weightInput')">Log weight</button>
+     <button type="button" onclick="jumpTo('health','walk','steps')">Add steps</button>
+     <button type="button" onclick="jumpTo('journal','notes','noteTitle')">Journal</button>
+     <button type="button" onclick="jumpTo('life','calendar')">Plan day</button>
+   </div>
+ </div>
+ <div class="dreamPanel" id="top3">
+   <div class="row" style="justify-content:space-between"><h3 style="margin:0">Top 3 today</h3><span class="pill">By date</span></div>
+   <div class="priorityGrid" id="priorityRows" style="margin-top:10px"></div>
+   <div class="viewHint">Keep this deliberately short: the three things that would make today count.</div>
+ </div>
+</section>
 
 <div class="grid">
 <section class="card w12 focusCard" id="dailyFocus">
@@ -358,7 +406,7 @@ border:1px solid var(--line);border-radius:12px;padding:10px 6px;font-weight:750
 </main>
 
 <nav class="nav"><div class="navin">
-<a href="#todaySummary">Journal</a><a href="#calendar">Calendar</a><a href="#reading">Reading</a><a href="#weight">Health</a><a href="#exercise">Fitness</a><a href="#notes">Notes</a>
+<a href="#" data-bottom-view="today" class="active" onclick="setDailyView('today');return false">Today</a><a href="#" data-bottom-view="journal" onclick="setDailyView('journal');return false">Journal</a><a href="#" data-bottom-view="health" onclick="setDailyView('health');return false">Health</a><a href="#" data-bottom-view="growth" onclick="setDailyView('growth');return false">Growth</a><a href="#" data-bottom-view="life" onclick="setDailyView('life');return false">Life</a><a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false">Top</a>
 </div></nav>
 
 <script>
@@ -746,6 +794,58 @@ renderWeightWaist = function(){
  drawChart('weightChart',rangeRecords('weight').map(x=>({x:x.date,y:+x.weight})),wg);
  drawChart('waistChart',rangeRecords('waist').map(x=>({x:x.date,y:+x.waist})),wsg);
 };
+renderAll();
+
+
+// Daily v7 Dream navigation + daily priorities. Existing Daily storage is untouched.
+let dailyView=localStorage.getItem('daily-last-view')||'today';
+const viewCards={
+ today:['dailyFocus','todaySummary','reading','tasksCard','proverbDaily'],
+ journal:['notes','images','calendar','data'],
+ health:['weight','waist','diet','exercise','walk','trends','insights'],
+ growth:['reading','proverbDaily','ministry','pilgrims'],
+ life:['tasksCard','calendar']
+};
+const viewLabels={today:'Focus',journal:'History',health:'Body',growth:'Faith',life:'Plan'};
+function setDailyView(view,scroll=true){
+ if(!viewCards[view])view='today'; dailyView=view; localStorage.setItem('daily-last-view',view);
+ const allowed=new Set(viewCards[view]);
+ document.querySelectorAll('.grid > .card').forEach(el=>el.classList.toggle('view-hidden',!allowed.has(el.id)));
+ document.querySelectorAll('.sectionTabs button[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+ document.querySelectorAll('[data-bottom-view]').forEach(a=>a.classList.toggle('active',a.dataset.bottomView===view));
+ if($('dreamViewLabel'))$('dreamViewLabel').textContent=viewLabels[view]||'Focus';
+ if(scroll)document.querySelector('.sectionTabs')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function jumpTo(view,id,inputId){
+ setDailyView(view,false);
+ setTimeout(()=>{const el=$(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});if(inputId)setTimeout(()=>$(inputId)?.focus(),350)},30);
+}
+function priorityKey(){return 'daily-top3-'+selectedDate}
+function priorityState(){return readJSON(priorityKey(),[
+ {text:'',done:false},{text:'',done:false},{text:'',done:false}
+ ])}
+function renderPriorities(){
+ const rows=priorityState(); while(rows.length<3)rows.push({text:'',done:false});
+ const box=$('priorityRows'); if(!box)return; box.innerHTML='';
+ rows.slice(0,3).forEach((p,i)=>{
+  const d=document.createElement('div'); d.className='priorityRow';
+  d.innerHTML=`<input type="checkbox" ${p.done?'checked':''} aria-label="Priority ${i+1} complete"><input type="text" value="${escAttr(p.text||'')}" placeholder="Priority ${i+1}">`;
+  d.children[0].onchange=e=>{rows[i].done=e.target.checked;writeJSON(priorityKey(),rows);renderDreamProgress()};
+  d.children[1].onchange=e=>{rows[i].text=e.target.value.trim();writeJSON(priorityKey(),rows);renderDreamProgress()};
+  box.appendChild(d);
+ });
+}
+function renderDreamProgress(){
+ const readings=readingItems(),rs=readJSON('daily-reading-'+selectedDate,{}),tasks=taskItems(),ts=readJSON('daily-tasks-'+selectedDate,{}),pr=priorityState();
+ const total=readings.length+tasks.length+pr.filter(x=>x.text).length;
+ const done=readings.filter(x=>rs[x.id]).length+tasks.filter(x=>ts[x.id]).length+pr.filter(x=>x.text&&x.done).length;
+ const pct=total?Math.round(done/total*100):0;
+ if($('dayCompletePct'))$('dayCompletePct').textContent=pct+'%';
+ if($('dayCompleteBar'))$('dayCompleteBar').style.width=pct+'%';
+ if($('dayMomentum'))$('dayMomentum').textContent=pct===100?'Day complete — nicely closed out.':pct>=65?'Good momentum — finish the important few.':pct>=25?'You are underway — keep it simple.':'Start with one useful thing.';
+}
+const _dailyV7RenderAll=renderAll;
+renderAll=function(){_dailyV7RenderAll();renderPriorities();renderDreamProgress();setDailyView(dailyView,false)};
 renderAll();
 
 </script>
